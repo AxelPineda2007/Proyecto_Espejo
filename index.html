@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b18">
+    <meta
+      name="description"
+      content="ESPEJO: un arcade de reflejos donde esquivar en un lado puede condenarte en el otro."
+    >
+    <title>ESPEJO — nada se mueve solo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a class="wordmark" href="./" aria-label="ESPEJO, inicio">
+          <span class="wordmark-mark" aria-hidden="true">◈</span>
+          <span>ESPEJO</span>
+        </a>
+        <span class="topbar-note">DOS LADOS. UNA SOLA MENTE.</span>
+        <a class="about-link" href="#instrucciones">CÓMO JUGAR <span aria-hidden="true">↗</span></a>
+      </header>
+
+      <section class="game-layout" aria-label="Juego ESPEJO">
+        <div class="game-heading">
+          <div>
+            <p class="eyebrow"><span class="live-dot"></span> PRUEBA DE REFLEJOS</p>
+            <h1>Tu peor enemigo.<br><span>Tu propio reflejo.</span></h1>
+          </div>
+          <div class="scoreboard" aria-label="Puntuación">
+            <div class="score-item">
+              <span class="score-label">PUNTOS</span>
+              <strong id="score">000000</strong>
+            </div>
+            <span class="score-divider" aria-hidden="true"></span>
+            <div class="score-item">
+              <span class="score-label">RÉCORD</span>
+              <strong id="best-score">000000</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="canvas-frame">
+          <canvas
+            id="game"
+            width="960"
+            height="560"
+            aria-label="Tablero de ESPEJO: controla dos naves con movimientos opuestos y esquiva los obstáculos."
+            aria-describedby="game-status"
+            tabindex="0"
+          ></canvas>
+          <div id="game-status" class="sr-only" role="status" aria-live="polite">
+            Pulsa Enter para comenzar.
+          </div>
+          <div class="canvas-caption" aria-hidden="true">
+            <span><i class="legend-dot legend-coral"></i> JUGADOR A</span>
+            <span class="caption-center">←  ESPEJO  →</span>
+            <span>JUGADOR B <i class="legend-dot legend-violet"></i></span>
+          </div>
+        </div>
+
+        <footer class="game-footer">
+          <div class="control-hint">
+            <span class="keycap">A</span><span class="keycap">D</span>
+            <span class="key-separator">/</span>
+            <span class="keycap key-wide">←</span><span class="keycap key-wide">→</span>
+            <span class="hint-label">mover</span>
+          </div>
+          <p id="game-message">Dos naves. Un solo par de manos.</p>
+          <div class="control-hint control-hint-right">
+            <span class="keycap key-wide">ESPACIO</span>
+            <span class="hint-label">pulso temporal</span>
+          </div>
+        </footer>
+
+        <section class="instructions" id="instrucciones">
+          <p class="eyebrow">EL TRUCO ESTÁ EN EL REFLEJO</p>
+          <p>
+            Mueve a la izquierda y tu otra nave irá a la derecha. Sobrevive por
+            partida doble: una sola colisión acaba con todo.
+          </p>
+        </section>
+      </section>
+
+      <div class="page-footer">
+        <span>HECHO PARA PENSAR DOS VECES</span>
+        <span>© ESPEJO ARCADE</span>
+      </div>
+    </main>
+  </body>
+</html>
