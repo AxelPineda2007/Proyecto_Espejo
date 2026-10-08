@@ -198,8 +198,8 @@ function update(deltaSeconds) {
   game.score = Math.floor(game.elapsed * 10);
   updateScoreboard();
 
-  const movingRight = game.keys.has("ArrowRight") || game.keys.has("KeyD");
-  const movingLeft = game.keys.has("ArrowLeft") || game.keys.has("KeyA");
+  const movingRight = game.keys.has("ArrowRight") || game.keys.has("KeyD") || game.keys.has("TouchRight");
+  const movingLeft = game.keys.has("ArrowLeft") || game.keys.has("KeyA") || game.keys.has("TouchLeft");
   const direction = Number(movingRight) - Number(movingLeft);
   game.offset = clamp(game.offset + direction * movementSpeed * deltaSeconds, 0, 1);
 
@@ -239,6 +239,7 @@ function update(deltaSeconds) {
 function endGame() {
   game.phase = "over";
   game.keys.clear();
+  updateGameControls();
   document.querySelector("#game-message").textContent = `Puntuación: ${game.score}. Una nave chocó.`;
   document.querySelector("#game-status").textContent = `Partida terminada. Tu puntuación fue ${game.score}. Pulsa Enter para intentarlo otra vez.`;
   if (game.score > game.bestScore) {
@@ -247,6 +248,14 @@ function endGame() {
     document.querySelector("#game-message").textContent = `¡Nuevo récord: ${game.score}!`;
   }
   updateScoreboard();
+}
+
+function updateGameControls() {
+  const startButton = document.querySelector("#start-button");
+  startButton.disabled = game.phase === "playing";
+  startButton.innerHTML = game.phase === "over"
+    ? '<span aria-hidden="true">▶</span> Jugar otra vez'
+    : '<span aria-hidden="true">▶</span> Iniciar';
 }
 
 function render() {
@@ -283,8 +292,7 @@ function frame(timestamp) {
   requestAnimationFrame(frame);
 }
 
-function startGame() {
-  if (game.phase === "playing") return;
+function startRound() {
   game.offset = 0.5;
   game.obstacles = [];
   game.spawnTimer = 0.6;
@@ -294,9 +302,18 @@ function startGame() {
   game.pulseCooldown = 0;
   game.keys.clear();
   game.phase = "playing";
+  updateGameControls();
   updateScoreboard();
   document.querySelector("#game-message").textContent = "No pierdas de vista ninguno de los dos lados.";
   document.querySelector("#game-status").textContent = "Partida en curso. Usa A y D o las flechas para mover ambas naves.";
+}
+
+function startGame() {
+  if (game.phase !== "playing") startRound();
+}
+
+function restartGame() {
+  startRound();
 }
 
 function activatePulse() {
@@ -305,11 +322,32 @@ function activatePulse() {
   game.pulseCooldown = 9;
 }
 
+function bindTouchMovement(buttonId, direction) {
+  const button = document.querySelector(buttonId);
+  const pointerKey = direction === "left" ? "TouchLeft" : "TouchRight";
+
+  button.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    if (game.phase !== "playing") startRound();
+    game.keys.add(pointerKey);
+    button.setPointerCapture(event.pointerId);
+  });
+
+  const releasePointer = () => {
+    game.keys.delete(pointerKey);
+  };
+
+  button.addEventListener("pointerup", releasePointer);
+  button.addEventListener("pointercancel", releasePointer);
+  button.addEventListener("lostpointercapture", releasePointer);
+}
+
 function isGameKey(key) {
   return ["ArrowLeft", "ArrowRight", "KeyA", "KeyD", "Space", "Enter"].includes(key);
 }
 
 window.addEventListener("keydown", (event) => {
+  if (event.target instanceof Element && event.target.closest("button, a, input, textarea, select")) return;
   if (isGameKey(event.code)) event.preventDefault();
   if (event.code === "Enter") startGame();
   if (event.code === "Space" && !event.repeat) activatePulse();
@@ -324,10 +362,21 @@ window.addEventListener("blur", () => {
   game.keys.clear();
 });
 
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) game.keys.clear();
+});
+
 canvas.addEventListener("click", () => {
   canvas.focus();
   startGame();
 });
 
+document.querySelector("#start-button").addEventListener("click", startGame);
+document.querySelector("#restart-button").addEventListener("click", restartGame);
+document.querySelector("#touch-pulse").addEventListener("click", activatePulse);
+bindTouchMovement("#move-left", "left");
+bindTouchMovement("#move-right", "right");
+
+updateGameControls();
 updateScoreboard();
 requestAnimationFrame(frame);

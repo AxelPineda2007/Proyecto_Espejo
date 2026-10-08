@@ -16,11 +16,18 @@ Después visita <http://localhost:8000>.
 
 | Acción | Teclas |
 | --- | --- |
-| Empezar o volver a empezar | `Enter` o clic en el tablero |
+| Iniciar | Botón **Iniciar**, `Enter` o clic en el tablero |
+| Reiniciar la partida | Botón **Reiniciar** |
 | Mover las dos naves | `A` / `D` o `←` / `→` |
 | Activar el pulso temporal | `Espacio` |
 
 **Objetivo:** sobrevive todo lo posible y evita todos los obstáculos. Tu puntuación aumenta con el tiempo de supervivencia; el récord se guarda en el navegador. La partida termina cuando cualquiera de las dos naves choca.
+
+### Jugar desde el celular
+
+En un celular aparecen controles táctiles debajo del tablero: mantén presionadas las flechas para mover las naves y toca **Pulso** para activar la dilatación temporal. También puedes iniciar y reiniciar con sus botones.
+
+Para probarlo en otro dispositivo de la misma red Wi-Fi, inicia el servidor local con `python -m http.server 8000 --bind 0.0.0.0` y abre `http://IP-DE-TU-COMPUTADORA:8000` en el celular. Ambos dispositivos deben estar conectados a la misma red y el firewall debe permitir la conexión. Para que se pueda jugar desde cualquier lugar, publica la carpeta en un servicio de alojamiento estático, como GitHub Pages.
 
 ## Las 10 líneas clave del movimiento espejado
 
@@ -73,7 +80,7 @@ No se necesitan paquetes, compilación ni dependencias externas. La tipografía 
 
 ## Proceso de desarrollo y screenshots
 
-El proyecto se desarrolló en seis commits incrementales, desde la estructura inicial hasta la documentación:
+El proyecto se desarrolló en seis commits incrementales, desde la estructura inicial hasta la documentación. Después se añadieron controles táctiles para facilitar el juego en celulares:
 
 1. `feat: initial commit with project structure and canvas layout`
 2. `feat: implement player movement and mirrored movement logic`
@@ -81,6 +88,7 @@ El proyecto se desarrolló en seis commits incrementales, desde la estructura in
 4. `feat: implement score counter and game over reset loop`
 5. `feat(extra): add temporal inversion pulse and arcade effects`
 6. `docs: add complete README.md with process documentation and assets`
+7. `feat: add touch controls for mobile devices`
 
 ### Proceso de código
 

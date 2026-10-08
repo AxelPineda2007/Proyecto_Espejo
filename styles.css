@@ -245,6 +245,101 @@ h1 span {
   background: var(--violet);
 }
 
+.game-actions {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.game-button {
+  display: inline-flex;
+  min-width: 124px;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 17px;
+  border: 1px solid rgba(184, 192, 231, 0.2);
+  border-radius: 6px;
+  background: rgba(185, 193, 231, 0.06);
+  color: #d5d9ed;
+  cursor: pointer;
+  font: 500 11px "DM Mono", monospace;
+  letter-spacing: 0.06em;
+  transition: border-color 150ms ease, background-color 150ms ease, opacity 150ms ease;
+}
+
+.game-button:hover:not(:disabled) {
+  border-color: rgba(130, 241, 210, 0.55);
+  background: rgba(130, 241, 210, 0.09);
+}
+
+.game-button:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+}
+
+.game-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.game-button-primary {
+  border-color: rgba(130, 241, 210, 0.36);
+  background: rgba(130, 241, 210, 0.11);
+  color: var(--mint);
+}
+
+.game-button-primary:hover:not(:disabled) {
+  background: rgba(130, 241, 210, 0.17);
+}
+
+.touch-controls {
+  display: none;
+  grid-template-columns: minmax(64px, 1fr) minmax(105px, 1.3fr) minmax(64px, 1fr);
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.touch-button {
+  display: inline-flex;
+  min-height: 60px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(184, 192, 231, 0.2);
+  border-radius: 10px;
+  background: rgba(185, 193, 231, 0.08);
+  color: #e2e5f4;
+  cursor: pointer;
+  font: 500 24px "DM Mono", monospace;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-button:active {
+  border-color: rgba(130, 241, 210, 0.72);
+  background: rgba(130, 241, 210, 0.2);
+  color: var(--mint);
+}
+
+.touch-button:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+}
+
+.touch-button-pulse {
+  border-color: rgba(130, 241, 210, 0.3);
+  color: var(--mint);
+  font-size: 14px;
+}
+
 .game-footer {
   min-height: 52px;
   justify-content: space-between;
@@ -379,6 +474,10 @@ h1 span {
     padding-block: 11px;
   }
 
+  .game-actions {
+    min-height: 56px;
+  }
+
   #game-message {
     order: -1;
     width: 100%;
@@ -394,6 +493,16 @@ h1 span {
 
   .page-footer {
     margin-top: 31px;
+  }
+}
+
+@media (pointer: coarse), (any-pointer: coarse) {
+  .touch-controls {
+    display: grid;
+  }
+
+  .control-hint {
+    display: none;
   }
 }
 
