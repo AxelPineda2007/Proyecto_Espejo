@@ -9,6 +9,7 @@ const shipY = height - 86;
 const shipSize = 13;
 const lanePadding = 38;
 const movementSpeed = 0.46;
+const bestScoreKey = "espejo-best-score";
 
 const game = {
   phase: "ready",
@@ -16,8 +17,35 @@ const game = {
   keys: new Set(),
   obstacles: [],
   spawnTimer: 0.6,
+  elapsed: 0,
+  score: 0,
+  bestScore: loadBestScore(),
   lastFrame: 0,
 };
+
+function loadBestScore() {
+  try {
+    const storedScore = Number(window.localStorage.getItem(bestScoreKey));
+    return Number.isFinite(storedScore) && storedScore > 0 ? Math.floor(storedScore) : 0;
+  } catch (error) {
+    console.warn("No se pudo leer el récord local de ESPEJO.", error);
+    return 0;
+  }
+}
+
+function saveBestScore() {
+  try {
+    window.localStorage.setItem(bestScoreKey, String(game.bestScore));
+  } catch (error) {
+    console.warn("No se pudo guardar el récord local de ESPEJO.", error);
+    document.querySelector("#game-message").textContent = "Récord no guardado: el almacenamiento local no está disponible.";
+  }
+}
+
+function updateScoreboard() {
+  document.querySelector("#score").textContent = String(game.score).padStart(6, "0");
+  document.querySelector("#best-score").textContent = String(game.bestScore).padStart(6, "0");
+}
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -126,6 +154,10 @@ function spawnObstaclePair() {
 function update(deltaSeconds) {
   if (game.phase !== "playing") return;
 
+  game.elapsed += deltaSeconds;
+  game.score = Math.floor(game.elapsed * 10);
+  updateScoreboard();
+
   const movingRight = game.keys.has("ArrowRight") || game.keys.has("KeyD");
   const movingLeft = game.keys.has("ArrowLeft") || game.keys.has("KeyA");
   const direction = Number(movingRight) - Number(movingLeft);
@@ -154,13 +186,23 @@ function update(deltaSeconds) {
     const dy = obstacle.y - shipY;
     const collisionRadius = obstacle.size * 0.5 + shipSize * 0.65;
     if (dx * dx + dy * dy < collisionRadius * collisionRadius) {
-      game.phase = "over";
-      game.keys.clear();
-      document.querySelector("#game-message").textContent = "Una nave chocó. ¿Viste las dos?";
-      document.querySelector("#game-status").textContent = "Partida terminada. Una de las naves chocó con un obstáculo.";
+      endGame();
       break;
     }
   }
+}
+
+function endGame() {
+  game.phase = "over";
+  game.keys.clear();
+  document.querySelector("#game-message").textContent = `Puntuación: ${game.score}. Una nave chocó.`;
+  document.querySelector("#game-status").textContent = `Partida terminada. Tu puntuación fue ${game.score}. Pulsa Enter para intentarlo otra vez.`;
+  if (game.score > game.bestScore) {
+    game.bestScore = game.score;
+    saveBestScore();
+    document.querySelector("#game-message").textContent = `¡Nuevo récord: ${game.score}!`;
+  }
+  updateScoreboard();
 }
 
 function render() {
@@ -181,7 +223,7 @@ function render() {
     context.fillStyle = "#82f1d2";
     context.font = '12px "DM Mono", monospace';
     context.fillText(
-      game.phase === "ready" ? "PULSA ENTER O HAZ CLIC PARA EMPEZAR" : "FIN DE LA PARTIDA",
+      game.phase === "ready" ? "PULSA ENTER O HAZ CLIC PARA EMPEZAR" : `PUNTOS ${game.score}  ·  ENTER PARA REINTENTAR`,
       middle,
       height / 2 + 17,
     );
@@ -197,8 +239,15 @@ function frame(timestamp) {
 }
 
 function startGame() {
-  if (game.phase !== "ready") return;
+  if (game.phase === "playing") return;
+  game.offset = 0.5;
+  game.obstacles = [];
+  game.spawnTimer = 0.6;
+  game.elapsed = 0;
+  game.score = 0;
+  game.keys.clear();
   game.phase = "playing";
+  updateScoreboard();
   document.querySelector("#game-message").textContent = "No pierdas de vista ninguno de los dos lados.";
   document.querySelector("#game-status").textContent = "Partida en curso. Usa A y D o las flechas para mover ambas naves.";
 }
@@ -226,4 +275,5 @@ canvas.addEventListener("click", () => {
   startGame();
 });
 
+updateScoreboard();
 requestAnimationFrame(frame);
