@@ -14,6 +14,8 @@ const game = {
   phase: "ready",
   offset: 0.5,
   keys: new Set(),
+  obstacles: [],
+  spawnTimer: 0.6,
   lastFrame: 0,
 };
 
@@ -88,16 +90,37 @@ function drawShips() {
   drawShip(rightX, "#a895ff", "#f0edff");
 }
 
-function drawReadyPrompt() {
-  context.fillStyle = "rgba(5, 8, 19, 0.64)";
-  context.fillRect(0, 0, width, height);
-  context.textAlign = "center";
-  context.fillStyle = "#f4f5ff";
-  context.font = '600 22px "Space Grotesk", sans-serif';
-  context.fillText("UNA MENTE. DOS DIRECCIONES.", middle, height / 2 - 16);
-  context.fillStyle = "#82f1d2";
-  context.font = '12px "DM Mono", monospace';
-  context.fillText("PULSA ENTER O HAZ CLIC PARA EMPEZAR", middle, height / 2 + 17);
+function drawObstacle(obstacle) {
+  context.save();
+  context.translate(obstacle.x, obstacle.y);
+  context.rotate(obstacle.rotation);
+  context.shadowColor = obstacle.color;
+  context.shadowBlur = 15;
+  context.fillStyle = obstacle.color;
+  context.fillRect(-obstacle.size / 2, -obstacle.size / 2, obstacle.size, obstacle.size);
+  context.shadowBlur = 0;
+  context.strokeStyle = "rgba(255, 255, 255, 0.58)";
+  context.lineWidth = 1;
+  context.strokeRect(-obstacle.size / 2 + 4, -obstacle.size / 2 + 4, obstacle.size - 8, obstacle.size - 8);
+  context.restore();
+}
+
+function spawnObstaclePair() {
+  const colors = ["#ffb45f", "#fa6c84", "#bb8aff"];
+  for (let side = 0; side < 2; side += 1) {
+    const laneStart = side === 0 ? 0 : middle;
+    const laneWidth = middle;
+    const size = 18 + Math.random() * 17;
+    game.obstacles.push({
+      x: laneStart + lanePadding + size + Math.random() * (laneWidth - lanePadding * 2 - size * 2),
+      y: -size,
+      size,
+      speed: 150 + Math.random() * 55,
+      rotation: Math.random() * Math.PI,
+      spin: (Math.random() - 0.5) * 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    });
+  }
 }
 
 function update(deltaSeconds) {
@@ -107,12 +130,62 @@ function update(deltaSeconds) {
   const movingLeft = game.keys.has("ArrowLeft") || game.keys.has("KeyA");
   const direction = Number(movingRight) - Number(movingLeft);
   game.offset = clamp(game.offset + direction * movementSpeed * deltaSeconds, 0, 1);
+
+  game.spawnTimer -= deltaSeconds;
+  if (game.spawnTimer <= 0) {
+    spawnObstaclePair();
+    game.spawnTimer = 0.82;
+  }
+
+  const [leftX, rightX] = shipPositions();
+  const shipX = [leftX, rightX];
+  for (let index = game.obstacles.length - 1; index >= 0; index -= 1) {
+    const obstacle = game.obstacles[index];
+    obstacle.y += obstacle.speed * deltaSeconds;
+    obstacle.rotation += obstacle.spin * deltaSeconds;
+
+    if (obstacle.y > height + obstacle.size) {
+      game.obstacles.splice(index, 1);
+      continue;
+    }
+
+    const ship = obstacle.x < middle ? 0 : 1;
+    const dx = obstacle.x - shipX[ship];
+    const dy = obstacle.y - shipY;
+    const collisionRadius = obstacle.size * 0.5 + shipSize * 0.65;
+    if (dx * dx + dy * dy < collisionRadius * collisionRadius) {
+      game.phase = "over";
+      game.keys.clear();
+      document.querySelector("#game-message").textContent = "Una nave chocó. ¿Viste las dos?";
+      document.querySelector("#game-status").textContent = "Partida terminada. Una de las naves chocó con un obstáculo.";
+      break;
+    }
+  }
 }
 
 function render() {
   drawBoard();
+  for (const obstacle of game.obstacles) drawObstacle(obstacle);
   drawShips();
-  if (game.phase === "ready") drawReadyPrompt();
+  if (game.phase === "ready" || game.phase === "over") {
+    context.fillStyle = "rgba(5, 8, 19, 0.66)";
+    context.fillRect(0, 0, width, height);
+    context.textAlign = "center";
+    context.fillStyle = "#f4f5ff";
+    context.font = '600 22px "Space Grotesk", sans-serif';
+    context.fillText(
+      game.phase === "ready" ? "UNA MENTE. DOS DIRECCIONES." : "EL REFLEJO TE ALCANZÓ.",
+      middle,
+      height / 2 - 16,
+    );
+    context.fillStyle = "#82f1d2";
+    context.font = '12px "DM Mono", monospace';
+    context.fillText(
+      game.phase === "ready" ? "PULSA ENTER O HAZ CLIC PARA EMPEZAR" : "FIN DE LA PARTIDA",
+      middle,
+      height / 2 + 17,
+    );
+  }
 }
 
 function frame(timestamp) {
