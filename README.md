@@ -6,13 +6,7 @@ ESPEJO es un arcade de supervivencia hecho con HTML5 Canvas, CSS y JavaScript pu
 
 ## Cómo jugar
 
-Abre `index.html` en un navegador moderno o inicia un servidor local desde esta carpeta:
 
-```bash
-python -m http.server 8000
-```
-
-Después visita <http://localhost:8000>.
 
 | Acción | Teclas |
 | --- | --- |
