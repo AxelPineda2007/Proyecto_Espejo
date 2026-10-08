@@ -20,6 +20,8 @@ const game = {
   elapsed: 0,
   score: 0,
   bestScore: loadBestScore(),
+  pulseTimer: 0,
+  pulseCooldown: 0,
   lastFrame: 0,
 };
 
@@ -118,6 +120,44 @@ function drawShips() {
   drawShip(rightX, "#a895ff", "#f0edff");
 }
 
+function drawPulseEffects() {
+  const active = game.pulseTimer > 0;
+  if (active) {
+    const shimmer = 0.5 + Math.sin(game.elapsed * 18) * 0.5;
+    context.save();
+    context.strokeStyle = `rgba(130, 241, 210, ${0.3 + shimmer * 0.35})`;
+    context.shadowColor = "#82f1d2";
+    context.shadowBlur = 20;
+    context.lineWidth = 2;
+    context.strokeRect(4, 4, width - 8, height - 8);
+    context.globalAlpha = 0.14;
+    context.fillStyle = "#82f1d2";
+    for (let y = 30; y < height - 30; y += 38) {
+      context.fillRect(0, y, width, 1);
+    }
+    context.restore();
+  }
+
+  const label = active
+    ? `TIEMPO ×0.35  ${game.pulseTimer.toFixed(1)}s`
+    : game.pulseCooldown > 0
+      ? `PULSO  ${game.pulseCooldown.toFixed(1)}s`
+      : "PULSO  LISTO";
+  context.save();
+  context.fillStyle = active ? "rgba(35, 92, 89, 0.84)" : "rgba(16, 20, 38, 0.86)";
+  context.strokeStyle = active ? "rgba(130, 241, 210, 0.68)" : "rgba(171, 181, 223, 0.19)";
+  context.lineWidth = 1;
+  context.beginPath();
+  context.roundRect(width - 177, 19, 157, 28, 7);
+  context.fill();
+  context.stroke();
+  context.fillStyle = active || game.pulseCooldown === 0 ? "#82f1d2" : "#9198b3";
+  context.font = '10px "DM Mono", monospace';
+  context.textAlign = "center";
+  context.fillText(label, width - 98.5, 37);
+  context.restore();
+}
+
 function drawObstacle(obstacle) {
   context.save();
   context.translate(obstacle.x, obstacle.y);
@@ -163,7 +203,11 @@ function update(deltaSeconds) {
   const direction = Number(movingRight) - Number(movingLeft);
   game.offset = clamp(game.offset + direction * movementSpeed * deltaSeconds, 0, 1);
 
-  game.spawnTimer -= deltaSeconds;
+  game.pulseTimer = Math.max(0, game.pulseTimer - deltaSeconds);
+  game.pulseCooldown = Math.max(0, game.pulseCooldown - deltaSeconds);
+  const worldDelta = deltaSeconds * (game.pulseTimer > 0 ? 0.35 : 1);
+
+  game.spawnTimer -= worldDelta;
   if (game.spawnTimer <= 0) {
     spawnObstaclePair();
     game.spawnTimer = 0.82;
@@ -173,8 +217,8 @@ function update(deltaSeconds) {
   const shipX = [leftX, rightX];
   for (let index = game.obstacles.length - 1; index >= 0; index -= 1) {
     const obstacle = game.obstacles[index];
-    obstacle.y += obstacle.speed * deltaSeconds;
-    obstacle.rotation += obstacle.spin * deltaSeconds;
+    obstacle.y += obstacle.speed * worldDelta;
+    obstacle.rotation += obstacle.spin * worldDelta;
 
     if (obstacle.y > height + obstacle.size) {
       game.obstacles.splice(index, 1);
@@ -209,6 +253,7 @@ function render() {
   drawBoard();
   for (const obstacle of game.obstacles) drawObstacle(obstacle);
   drawShips();
+  if (game.phase === "playing") drawPulseEffects();
   if (game.phase === "ready" || game.phase === "over") {
     context.fillStyle = "rgba(5, 8, 19, 0.66)";
     context.fillRect(0, 0, width, height);
@@ -245,11 +290,19 @@ function startGame() {
   game.spawnTimer = 0.6;
   game.elapsed = 0;
   game.score = 0;
+  game.pulseTimer = 0;
+  game.pulseCooldown = 0;
   game.keys.clear();
   game.phase = "playing";
   updateScoreboard();
   document.querySelector("#game-message").textContent = "No pierdas de vista ninguno de los dos lados.";
   document.querySelector("#game-status").textContent = "Partida en curso. Usa A y D o las flechas para mover ambas naves.";
+}
+
+function activatePulse() {
+  if (game.phase !== "playing" || game.pulseCooldown > 0) return;
+  game.pulseTimer = 2.4;
+  game.pulseCooldown = 9;
 }
 
 function isGameKey(key) {
@@ -259,6 +312,7 @@ function isGameKey(key) {
 window.addEventListener("keydown", (event) => {
   if (isGameKey(event.code)) event.preventDefault();
   if (event.code === "Enter") startGame();
+  if (event.code === "Space" && !event.repeat) activatePulse();
   if (game.phase === "playing" && isGameKey(event.code)) game.keys.add(event.code);
 });
 
